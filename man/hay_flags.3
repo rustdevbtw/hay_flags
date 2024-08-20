@@ -1,0 +1,148 @@
+.\" generated with Ronn-NG/v0.10.1
+.\" http://github.com/apjanke/ronn-ng/tree/0.10.1
+.TH "HAY_FLAGS\.H" "3" "August 2024" "Hay Foundation" "hay/flags.h"
+.SH "NAME"
+\fBhay_flags\.h\fR \- a command\-line argument parser
+.SH "SYNOPSIS"
+\fBflags_t hay_flags_parse(flags_t flags, int argc, char **argv);\fR
+.br
+\fBflag_t *hay_flags_get(flags_t flags, char *flag);\fR
+.br
+\fBchar *hay_flags_get_val(flags_t flags, char *flag);\fR
+.br
+\fBint hay_flags_get_check(flags_t flags, char *flag);\fR
+.br
+\fBint hay_flags_get_idx(flags_t flags, char *flag);\fR
+.SH "DESCRIPTION"
+\fBhay_flags\fR (a part of \fBHay Suite\fR) is a command\-line argument parser that's made to be simple\-enough\.
+.SH "TYPES"
+.SS "flag_t"
+This structure holds the crucial info:
+.TP
+\fB\fBflag\fR\fR
+A \fBchar\fR pointer (string) representing a flag\.
+.TP
+\fB\fBval\fR\fR
+A \fBchar*\fR pointer (pointer to string) representing the value\. This is where the value will be stored\.
+.TP
+\fB\fBcheck\fR\fR
+An \fBint\fR pointer (pointer to integer)\.
+.br
+Sometimes, you might wanna just check for some option (without value)\. In such a case, you can just set it to the memory where you wanna check it, and set \fBval\fR to \fBNULL\fR\.
+.TP
+\fB\fBidx\fR\fR
+An \fBint\fR pointer (pointer to integer)\. This is where the index (of \fBargv\fR) of the specific found flag is stored\.
+.IP "" 4
+.nf
+typedef struct flag {
+  char *flag; /**< The flag string (e\.g\., "\-p" or "\-\-port")\. */
+  char *
+      *val;   /**< Pointer to a variable where the flag's value will be stored\.
+                 This pointer may be NULL if the flag does not require a value\. */
+  int *check; /**< Pointer to an integer used as a check bit\. If not NULL, it
+                 will be set to 1 if the flag is matched\. */
+  int *idx;   /**< Pointer to an integer where the index of the matched argument
+                 is stored\. */
+} flag_t;
+.fi
+.IP "" 0
+.SS "flags_t"
+This is just an alias of \fBflag_t*\fR (a pointer to \fBflag_t\fR)\.
+.SH "PARAMETERS"
+The following parameters are required by the \fBhay_flags_parse()\fR function\. For others, see \fIFUNCTIONS\fR\.
+.IP "\(bu" 4
+\fB\fBflags\fR\fR: A pointer to an array of \fB\fBflag_t\fR\fR structures (see \fIflags_t(3)\fR)\. Each \fB\fBflag_t\fR\fR (see \fIflag_t(3)\fR) structure contains a flag string and a pointer to a location where the flag's value should be stored\. If this parameter is NULL, the function expects that the caller has provided a valid array of \fB\fBflag_t\fR\fR structures that will be populated with the parsed results\. The caller is responsible for freeing this allocated memory when it is no longer needed\.
+.IP "\(bu" 4
+\fB\fBargc\fR\fR: The number of command\-line arguments in the \fBargv\fR array\. This parameter indicates how many arguments are available for processing\.
+.IP "\(bu" 4
+\fB\fBargv\fR\fR: An array of command\-line arguments\. Each element in this array is a string representing a single argument passed to the program\. The array should be terminated with a NULL pointer\.
+.IP "" 0
+.SH "RETURN VALUE"
+The \fBhay_flags_parse\fR function returns a pointer to the \fBflags\fR array on success\. If an error occurs during parsing (e\.g\., a required argument is missing or memory allocation fails), the function sets \fB\fBerrno\fR\fR to an appropriate error code and returns NULL\.
+.SH "ERRORS"
+.TP
+\fB\fBEINVAL\fR\fR
+This error code is set when an invalid argument is encountered, a required argument for a flag is missing, or if the \fBflags\fR parameter is NULL\. The function will print an appropriate error message to \fBstderr\fR and return NULL\.
+.TP
+\fB\fBENOMEM\fR\fR
+This error code is set if memory allocation fails while storing flag values\. The function will print an appropriate error message to \fBstderr\fR and return NULL\.
+.SH "FUNCTIONS"
+.SS "hay_flags_get()"
+.nf
+flag_t *hay_flags_get(flags_t flags, char *flag);
+.fi
+.P
+Retrieves the \fBflag_t\fR structure associated with a specific flag\. This function searches for the specified flag in the \fBflags\fR array and returns the corresponding \fBflag_t\fR structure if found\. If the flag is not found, the function returns NULL\.
+.SS "hay_flags_get_val()"
+.nf
+char *hay_flags_get_val(flags_t flags, char *flag);
+.fi
+.P
+Retrieves the value associated with a specific flag\. This function retrieves the value stored in the \fBval\fR field of the \fBflag_t\fR structure associated with the specified flag\. If the flag does not have an associated value, or if the flag is not found, the function returns NULL\.
+.SS "hay_flags_get_check()"
+.nf
+int hay_flags_get_check(flags_t flags, char *flag);
+.fi
+.P
+Retrieves the check bit associated with a specific flag\. This function retrieves the value of the check bit stored in the \fBcheck\fR field of the \fBflag_t\fR structure associated with the specified flag\. If the flag does not have a check bit, or if the flag is not found, the function returns 0\.
+.SS "hay_flags_get_idx()"
+.nf
+int hay_flags_get_idx(flags_t flags, char *flag);
+.fi
+.P
+Retrieves the index of a specific flag\. This function retrieves the index of the command\-line argument that matches the specified flag\. If the flag is not found, or if the index is not set, the function returns \-1\.
+.SH "EXAMPLES"
+The following example demonstrates how to use the \fB\fBhay_flags_parse\fR\fR function to parse command\-line arguments and extract values for specific flags:
+.IP "" 4
+.nf
+#include <hay/flags\.h>
+#include <stdio\.h>
+#include <stdlib\.h>
+#include <string\.h>
+
+int main(int argc, char **argv) {
+    // Define variables to store flag values
+    char port[256];
+    char dir[256];
+
+    // Define an array of flags with their corresponding storage locations
+    flag_t my_flags[] = {
+        {"\-p", &port},
+        {"\-\-port", &port},
+        {"\-d", &dir},
+        {"\-\-dir", &dir}
+    };
+
+    // Parse the command\-line arguments
+    flags_t parsed_flags = hay_flags_parse(my_flags, argc, argv);
+
+    // Check if parsing was successful
+    if (parsed_flags == NULL) {
+        // Handle error
+        perror("Failed to parse flags");
+        return EXIT_FAILURE;
+    } else {
+        // Successfully parsed
+        printf("Port: %s\en", port);
+        printf("Directory: %s\en", dir);
+    }
+
+    return EXIT_SUCCESS;
+}
+.fi
+.IP "" 0
+.P
+In this example:
+.IP "1." 4
+\fB\-p\fR and \fB\-\-port\fR flags both set the \fBport\fR variable\.
+.IP "2." 4
+\fB\-d\fR and \fB\-\-dir\fR flags set the \fBdir\fR variable\.
+.IP "3." 4
+The program parses the command\-line arguments to extract these values\.
+.IP "" 0
+.SH "SEE ALSO"
+assert(3), malloc(3), errno(3), free(3), fprintf(3)
+.SH "AUTHOR"
+Written by Hay Foundation\. Contributions and feedback can be directed to \fInobody@rajdeepm\.xyz\fR\.
+.SH "COPYRIGHT"
+This manpage is released under the \fBMozilla Public License, version 2\.0\fR License\.
