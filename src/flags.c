@@ -89,7 +89,7 @@ flag_t *hay_flags_parse(flags_t flags, int argc, char **argv) {
 
     flag_t *found_flag = malloc(sizeof(flag_t));
     found_flag = NULL;
-    for (int j = 0; &flags[j] != NULL; j++) {
+    for (int j = 0; flags[j].flag != NULL; j++) {
       flag_t *flag = &flags[j];
       if (flag->flag == NULL)
         break;
