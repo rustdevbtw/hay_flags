@@ -143,7 +143,7 @@ flag_t *hay_flags_parse(flag_t *flags, int argc, char **argv) {
         } else {
           // Missing value for the flag
           fprintf(stderr, "hay_flags_parse: Missing argument for %s\n",
-                  argv[i]);
+                  current_flag->flag);
           errno = EINVAL;
           return NULL;
         }
