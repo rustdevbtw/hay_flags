@@ -4,15 +4,15 @@
 .SH "NAME"
 \fBhay_flags\.h\fR \- a simple command\-line argument parser
 .SH "SYNOPSIS"
-\fBflags_t hay_flags_parse(flags_t flags, int argc, char **argv);\fR
+\fBflag_t *hay_flags_parse(flag_t *flags, int argc, char **argv);\fR
 .br
-\fBflag_t *hay_flags_get(flags_t flags, char *flag);\fR
+\fBflag_t *hay_flags_get(flag_t *flags, char *flag);\fR
 .br
-\fBchar *hay_flags_get_val(flags_t flags, char *flag);\fR
+\fBchar *hay_flags_get_val(flag_t *flags, char *flag);\fR
 .br
-\fBint hay_flags_get_check(flags_t flags, char *flag);\fR
+\fBint hay_flags_get_check(flag_t *flags, char *flag);\fR
 .br
-\fBint hay_flags_get_idx(flags_t flags, char *flag);\fR
+\fBint hay_flags_get_idx(flag_t *flags, char *flag);\fR
 .SH "DESCRIPTION"
 \fBhay_flags\fR (a part of \fBHay Suite\fR) is a command\-line argument parser that's made to be simple\-enough\.
 .SH "TYPES"
@@ -46,7 +46,7 @@ typedef struct flag {
 } flag_t;
 .fi
 .IP "" 0
-.SS "flags_t (deprecated)"
+.SS "flag_t * (deprecated)"
 This is just an alias of \fBflag_t*\fR (a pointer to \fBflag_t\fR)\.
 .SH "PARAMETERS"
 The following parameters are required by the \fBhay_flags_parse()\fR function\. For others, see \fIFUNCTIONS\fR\.
@@ -69,25 +69,25 @@ This error code is set if memory allocation fails while storing flag values\. Th
 .SH "FUNCTIONS"
 .SS "hay_flags_get()"
 .nf
-flag_t *hay_flags_get(flags_t flags, char *flag);
+flag_t *hay_flags_get(flag_t * flags, char *flag);
 .fi
 .P
 Retrieves the \fBflag_t\fR structure associated with a specific flag\. This function searches for the specified flag in the \fBflags\fR array and returns the corresponding \fBflag_t\fR structure if found\. If the flag is not found, the function returns NULL\.
 .SS "hay_flags_get_val()"
 .nf
-char *hay_flags_get_val(flags_t flags, char *flag);
+char *hay_flags_get_val(flag_t * flags, char *flag);
 .fi
 .P
 Retrieves the value associated with a specific flag\. This function retrieves the value stored in the \fBval\fR field of the \fBflag_t\fR structure associated with the specified flag\. If the flag does not have an associated value, or if the flag is not found, the function returns NULL\.
 .SS "hay_flags_get_check()"
 .nf
-int hay_flags_get_check(flags_t flags, char *flag);
+int hay_flags_get_check(flag_t * flags, char *flag);
 .fi
 .P
 Retrieves the check bit associated with a specific flag\. This function retrieves the value of the check bit stored in the \fBcheck\fR field of the \fBflag_t\fR structure associated with the specified flag\. If the flag does not have a check bit, or if the flag is not found, the function returns 0\.
 .SS "hay_flags_get_idx()"
 .nf
-int hay_flags_get_idx(flags_t flags, char *flag);
+int hay_flags_get_idx(flag_t * flags, char *flag);
 .fi
 .P
 Retrieves the index of a specific flag\. This function retrieves the index of the command\-line argument that matches the specified flag\. If the flag is not found, or if the index is not set, the function returns \-1\.
@@ -114,7 +114,7 @@ int main(int argc, char **argv) {
     };
 
     // Parse the command\-line arguments
-    flags_t parsed_flags = hay_flags_parse(my_flags, argc, argv);
+    flag_t * parsed_flags = hay_flags_parse(my_flags, argc, argv);
 
     // Check if parsing was successful
     if (parsed_flags == NULL) {

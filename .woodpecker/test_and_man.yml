@@ -1,0 +1,32 @@
+pipeline:
+  build:
+    image: alpine:latest
+    when:
+      branch:
+        - master
+      event:
+        - push
+        - pull_request
+    commands:
+      - apk add --no-cache cmake build-base gcc >/dev/null
+      - export CFLAGS="-Wall"
+      - mkdir -pv build
+      - cd build
+      - cmake ..
+      - cmake --build .
+      - ctest
+
+  gen_man:
+    image: ruby:3.2
+    when:
+      branch:
+        - master
+      event:
+        - push
+    commands:
+      - gem install ronn-ng
+      - ronn --roff man/hay_flags.md --manual=hay/flags.h --organization="Hay Foundation"
+      - git add man/hay_flags.3
+      - latest_sha=$(git rev-parse --short HEAD)
+      - git commit -s -m "[${latest_sha}] manpage [CI SKIP]"
+      - git push

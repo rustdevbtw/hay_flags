@@ -9,7 +9,8 @@ hay_flags.h(3) -- a simple command-line argument parser
 `int hay_flags_get_idx(flag_t *flags, char *flag);`  
 
 ## DESCRIPTION
-`hay_flags` (a part of **Hay Suite**) is a command-line argument parser that's made to be simple-enough.
+`hay_flags` is a command-line argument parser that's made to be simple-enough.  
+A **Hay Suite** project.
 
 ## TYPES
 ### flag_t

@@ -25,13 +25,12 @@ cmake --build .
 ### Generating manpages
 You can generate the manpage, by modifying the `man/hay_flags.md` file.  
 Once you're done, you'll need `ronn` (`ronn-ng` recommended).  
-
-Assuming you already have it, you can now commit as usual, just be sure to set the `core.hooksPath`  
-for git with:
+You can generate them with:
 ```sh
-git config core.hooksPath .hooks
+ronn --roff man/hay_flags.md --manual=hay/flags.h --organization="Hay Foundation"
 ```
-This way, it'll automatically update the manpage (`man/hay_flags.3`) everytime you push.
+You don't always have to do this, though. Every push to `master` automatically triggers a test CI.  
+Among testing, it also generates this manpage.
 
 ### Testing
 This project comes with (some) tests. They're in `tests` dir.  
