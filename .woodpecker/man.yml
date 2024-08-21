@@ -16,7 +16,15 @@ steps:
       git add man/hay_flags.3
       git commit -s -m "[$sha] manpage [CI SKIP]"
       git remote remove origin
-      git remote add origin git@codeberg.org:hay/flags.git
       mkdir -p $HOME/.ssh
-      echo "${ssh_key}" >$HOME/.ssh/id_rsa
-      git push -u origin master
+      echo "${ssh_pub}" > /$HOME/.ssh/id_rsa.pub
+
+  - name: push
+    image: appleboy/drone-git-push
+      settings:
+        remote_name: origin
+        branch: master
+        local_ref: master
+        ssh_key:
+          from_secret: ssh_key
+        remote: git@codeberg.org:hay/flags.git
