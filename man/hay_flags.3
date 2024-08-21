@@ -2,7 +2,7 @@
 .\" http://github.com/apjanke/ronn-ng/tree/0.10.1
 .TH "HAY_FLAGS\.H" "3" "August 2024" "Hay Foundation" "hay/flags.h"
 .SH "NAME"
-\fBhay_flags\.h\fR \- a command\-line argument parser
+\fBhay_flags\.h\fR \- a simple command\-line argument parser
 .SH "SYNOPSIS"
 \fBflags_t hay_flags_parse(flags_t flags, int argc, char **argv);\fR
 .br
@@ -51,7 +51,7 @@ This is just an alias of \fBflag_t*\fR (a pointer to \fBflag_t\fR)\.
 .SH "PARAMETERS"
 The following parameters are required by the \fBhay_flags_parse()\fR function\. For others, see \fIFUNCTIONS\fR\.
 .IP "\(bu" 4
-\fB\fBflags\fR\fR: A pointer to an array of \fB\fBflag_t\fR\fR structures (see \fIflags_t(3)\fR)\. Each \fB\fBflag_t\fR\fR (see \fIflag_t(3)\fR) structure contains a flag string and a pointer to a location where the flag's value should be stored\. If this parameter is NULL, the function expects that the caller has provided a valid array of \fB\fBflag_t\fR\fR structures that will be populated with the parsed results\. The caller is responsible for freeing this allocated memory when it is no longer needed\.
+\fB\fBflags\fR\fR: A pointer to an array of \fB\fBflag_t\fR\fR structures (see \fIflags_t(3)\fR (\fBdeprecated\fR))\. Each \fB\fBflag_t\fR\fR (see \fIflag_t(3)\fR) structure contains a flag string and a pointer to a location where the flag's value should be stored\. If this parameter is NULL, the function expects that the caller has provided a valid array of \fB\fBflag_t\fR\fR structures that will be populated with the parsed results\. The caller is responsible for freeing this allocated memory when it is no longer needed\.
 .IP "\(bu" 4
 \fB\fBargc\fR\fR: The number of command\-line arguments in the \fBargv\fR array\. This parameter indicates how many arguments are available for processing\.
 .IP "\(bu" 4

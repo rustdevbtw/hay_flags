@@ -2,11 +2,11 @@ hay_flags.h(3) -- a simple command-line argument parser
 =======================================================
 
 ## SYNOPSIS
-`flags_t hay_flags_parse(flags_t flags, int argc, char **argv);`  
-`flag_t *hay_flags_get(flags_t flags, char *flag);`  
-`char *hay_flags_get_val(flags_t flags, char *flag);`  
-`int hay_flags_get_check(flags_t flags, char *flag);`  
-`int hay_flags_get_idx(flags_t flags, char *flag);`  
+`flag_t *hay_flags_parse(flag_t *flags, int argc, char **argv);`  
+`flag_t *hay_flags_get(flag_t *flags, char *flag);`  
+`char *hay_flags_get_val(flag_t *flags, char *flag);`  
+`int hay_flags_get_check(flag_t *flags, char *flag);`  
+`int hay_flags_get_idx(flag_t *flags, char *flag);`  
 
 ## DESCRIPTION
 `hay_flags` (a part of **Hay Suite**) is a command-line argument parser that's made to be simple-enough.
@@ -38,7 +38,7 @@ typedef struct flag {
 } flag_t;
 ```
 
-### flags_t (deprecated)
+### flag_t * (deprecated)
 This is just an alias of `flag_t*` (a pointer to `flag_t`).
 
 ## PARAMETERS
@@ -65,25 +65,25 @@ The `hay_flags_parse` function returns a pointer to the `flags` array on success
 ## FUNCTIONS
 ### hay_flags_get()
 ```c
-flag_t *hay_flags_get(flags_t flags, char *flag);
+flag_t *hay_flags_get(flag_t * flags, char *flag);
 ```
 Retrieves the `flag_t` structure associated with a specific flag. This function searches for the specified flag in the `flags` array and returns the corresponding `flag_t` structure if found. If the flag is not found, the function returns NULL.
 
 ### hay_flags_get_val()
 ```c
-char *hay_flags_get_val(flags_t flags, char *flag);
+char *hay_flags_get_val(flag_t * flags, char *flag);
 ```
 Retrieves the value associated with a specific flag. This function retrieves the value stored in the `val` field of the `flag_t` structure associated with the specified flag. If the flag does not have an associated value, or if the flag is not found, the function returns NULL.
 
 ### hay_flags_get_check()
 ```c
-int hay_flags_get_check(flags_t flags, char *flag);
+int hay_flags_get_check(flag_t * flags, char *flag);
 ```
 Retrieves the check bit associated with a specific flag. This function retrieves the value of the check bit stored in the `check` field of the `flag_t` structure associated with the specified flag. If the flag does not have a check bit, or if the flag is not found, the function returns 0.
 
 ### hay_flags_get_idx()
 ```c
-int hay_flags_get_idx(flags_t flags, char *flag);
+int hay_flags_get_idx(flag_t * flags, char *flag);
 ```
 Retrieves the index of a specific flag. This function retrieves the index of the command-line argument that matches the specified flag. If the flag is not found, or if the index is not set, the function returns -1.
 
@@ -110,7 +110,7 @@ int main(int argc, char **argv) {
     };
 
     // Parse the command-line arguments
-    flags_t parsed_flags = hay_flags_parse(my_flags, argc, argv);
+    flag_t * parsed_flags = hay_flags_parse(my_flags, argc, argv);
 
     // Check if parsing was successful
     if (parsed_flags == NULL) {
