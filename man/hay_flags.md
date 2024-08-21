@@ -99,8 +99,8 @@ The following example demonstrates how to use the **`hay_flags_parse`** function
 
 int main(int argc, char **argv) {
     // Define variables to store flag values
-    char port[256];
-    char dir[256];
+    char *port = NULL;
+    char *dir = NULL;
     
     // Define an array of flags with their corresponding storage locations
     flag_t my_flags[] = {

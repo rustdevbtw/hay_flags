@@ -7,8 +7,8 @@
 int main() {
   char *argv[] = {"hello", "-p", "3000", "-d", "src/"};
   int argc = 5;
-  char *port;
-  char *dir;
+  char *port = NULL;
+  char *dir = NULL;
 
   flag_t flags[] = {
       {"-p", &port}, {"--port", &port}, {"--dir", &dir}, {"-d", &dir}};
