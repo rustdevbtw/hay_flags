@@ -21,10 +21,10 @@ steps:
 
   - name: push
     image: appleboy/drone-git-push
-      settings:
-        remote_name: origin
-        branch: master
-        local_ref: master
-        ssh_key:
-          from_secret: ssh_key
-        remote: git@codeberg.org:hay/flags.git
+    settings:
+      remote_name: origin
+      branch: master
+      local_ref: master
+      ssh_key:
+        from_secret: ssh_key
+      remote: git@codeberg.org:hay/flags.git
