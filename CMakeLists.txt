@@ -43,7 +43,7 @@ install(TARGETS ${LIBRARY_NAME}
 install(DIRECTORY include/ DESTINATION include)
 
 # Set library version
-set_target_properties(${LIBRARY_NAME} PROPERTIES VERSION 1.0 SOVERSION 1)
+set_target_properties(${LIBRARY_NAME} PROPERTIES VERSION 0.0.1 SOVERSION 0)
 
 if(BUILD_tests)
     # Enable testing
@@ -64,3 +64,6 @@ if(BUILD_tests)
         add_test(NAME ${test_name} COMMAND ${test_name})
     endforeach()
 endif()
+
+# Install the man page
+install(FILES man/hay_flags.3 DESTINATION share/man/man3)
