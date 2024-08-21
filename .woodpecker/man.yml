@@ -5,14 +5,15 @@ when:
 steps:
   - name: gen 
     image: ruby:3.2 
-    commands:
-      - git config --global user.name "Rajdeep Malakar"
-      - git config --global user.email "rajdeepm.dev@gmail.com"
-      - gem install ronn-ng
-      - ronn --roff man/hay_flags.md --manual=hay/flags.h --organization="Hay Foundation"
-      - git add man/hay_flags.3
-      - latest_sha=$(git rev-parse --short HEAD)
-      - git commit -s -m "[${latest_sha}] manpage [CI SKIP]"
+    commands: |
+      git pull
+      latest_sha=$(git rev-parse --short HEAD)
+      git config --global user.name "Rajdeep Malakar"
+      git config --global user.email "rajdeepm.dev@gmail.com"
+      gem install ronn-ng
+      ronn --roff man/hay_flags.md --manual=hay/flags.h --organization="Hay Foundation"
+      git add man/hay_flags.3
+      git commit -s -m "[${latest_sha}] manpage [CI SKIP]"
 
   - name: push
     image: appleboy/drone-git-push
