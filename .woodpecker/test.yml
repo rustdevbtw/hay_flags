@@ -1,0 +1,17 @@
+pipeline:
+  build:
+    image: alpine:latest
+    when:
+      branch:
+        - master
+      event:
+        - push
+        - pull_request
+    commands:
+      - apk add --no-cache cmake build-base gcc >/dev/null
+      - export CFLAGS="-Wall"
+      - mkdir -pv build
+      - cd build
+      - cmake ..
+      - cmake --build .
+      - ctest
