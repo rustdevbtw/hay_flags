@@ -12,7 +12,7 @@ steps:
       
       gem install ronn-ng >/dev/null
 
-      ronn --roff man/hay_flags.md --manual=hay/flags.h --organization="Hay Foundation"
+      ronn --roff man/hay_flags.md --manual=hay/flags.h --organization="The Hay Project"
       git add man/hay_flags.3
       git commit -s -m "[$sha] manpage [CI SKIP]" || true
       git remote remove origin

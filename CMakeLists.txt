@@ -4,6 +4,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Default to building a static library
 option(SHARED_flags "Build hayflags as a shared library" OFF)
+option(BUILD_tests "Build tests" ON)
 
 # Define the library name
 set(LIBRARY_NAME "hayflags")
@@ -36,7 +37,6 @@ endif()
 install(TARGETS ${LIBRARY_NAME}
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib
-    RUNTIME DESTINATION bin
 )
 
 # Install headers
@@ -45,16 +45,22 @@ install(DIRECTORY include/ DESTINATION include)
 # Set library version
 set_target_properties(${LIBRARY_NAME} PROPERTIES VERSION 1.0 SOVERSION 1)
 
-# Enable testing
-enable_testing()
+if(BUILD_tests)
+    # Enable testing
+    enable_testing()
 
-# Define the test executable
-add_executable(test_flags tests/test_flags.c)
+    # Collect all test files
+    file(GLOB TEST_SOURCES "tests/test_*.c")
 
-# Link the test executable with the library
-target_link_libraries(test_flags PRIVATE ${LIBRARY_NAME})
-
-# Define a test case
-add_test(NAME test_flags COMMAND test_flags)
-
-# Optionally, add additional configuration here
+    # Create a separate executable for each test file
+    foreach(test_file ${TEST_SOURCES})
+        # Extract the filename without the extension
+        get_filename_component(test_name ${test_file} NAME_WE)
+        # Define the executable
+        add_executable(${test_name} ${test_file})
+        # Link the executable with the library and the math library
+        target_link_libraries(${test_name} PRIVATE ${LIBRARY_NAME})
+        # Define the test case
+        add_test(NAME ${test_name} COMMAND ${test_name})
+    endforeach()
+endif()

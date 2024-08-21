@@ -27,7 +27,7 @@ You can generate the manpage, by modifying the `man/hay_flags.md` file.
 Once you're done, you'll need `ronn` (`ronn-ng` recommended).  
 You can generate them with:
 ```sh
-ronn --roff man/hay_flags.md --manual=hay/flags.h --organization="Hay Foundation"
+ronn --roff man/hay_flags.md --manual=hay/flags.h --organization="The Hay Project"
 ```
 You don't always have to do this, though. Every push to `master` automatically triggers a test CI.  
 Among testing, it also generates this manpage.
@@ -40,6 +40,7 @@ You can run them with:
 cd build
 ctest
 ```
+You can also disable building the tests with `-DBUILD_tests=OFF` CMake option.
 
 ### Notes for `clangd` users
 If you want to contribute to it, or develop on it, you should let `clangd` know about it, by doing:

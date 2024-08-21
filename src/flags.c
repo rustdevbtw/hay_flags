@@ -194,7 +194,11 @@ flag_t *hay_flags_get(flag_t *flags, char *flag) {
 char *hay_flags_get_val(flag_t *flags, char *flag) {
   flag_t *f = hay_flags_get(flags, flag);
   if (f != NULL) {
-    return *(f->val);
+    if (f->val != NULL) {
+      return *(f->val);
+    } else {
+      return NULL;
+    }
   }
   return NULL;
 }
@@ -214,7 +218,9 @@ char *hay_flags_get_val(flag_t *flags, char *flag) {
  */
 int hay_flags_get_check(flag_t *flags, char *flag) {
   flag_t *f = hay_flags_get(flags, flag);
-  if (f != NULL && f->check != NULL) {
+  if (f != NULL) {
+    if (f->check == NULL)
+      return 0;
     return *(f->check);
   }
   return 0;

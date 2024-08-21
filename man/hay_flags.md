@@ -137,7 +137,7 @@ In this example:
 assert(3), malloc(3), errno(3), free(3), fprintf(3)
 
 ## AUTHOR
-Written by Hay Foundation. Contributions and feedback can be directed to <nobody@rajdeepm.xyz>.
+Written by The Hay Project. Contributions and feedback can be directed to <nobody@rajdeepm.xyz>.
 
 ## COPYRIGHT
 This manpage is released under the **Mozilla Public License, version 2.0** License.

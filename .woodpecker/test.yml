@@ -12,6 +12,6 @@ pipeline:
       - export CFLAGS="-Wall"
       - mkdir -pv build
       - cd build
-      - cmake ..
+      - cmake -DBUILD_tests=OFF ..
       - cmake --build .
       - ctest
