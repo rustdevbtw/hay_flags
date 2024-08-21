@@ -16,8 +16,6 @@ steps:
       git add man/hay_flags.3
       git commit -s -m "[$sha] manpage [CI SKIP]"
       git remote remove origin
-      mkdir -p $HOME/.ssh
-      echo "${ssh_pub}" > /$HOME/.ssh/id_rsa.pub
 
   - name: push
     image: appleboy/drone-git-push
