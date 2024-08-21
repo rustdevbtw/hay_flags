@@ -17,18 +17,26 @@ pipeline:
       - ctest
 
   gen_man:
-    image: ruby:3.2
     when:
       branch:
         - master
       event:
         - push
-    commands:
-      - git config --global user.name "Rajdeep Malakar"
-      - git config --global user.email "rajdeepm.dev@gmail.com"
-      - gem install ronn-ng
-      - ronn --roff man/hay_flags.md --manual=hay/flags.h --organization="Hay Foundation"
-      - git add man/hay_flags.3
-      - latest_sha=$(git rev-parse --short HEAD)
-      - git commit -s -m "[${latest_sha}] manpage [CI SKIP]"
-      - git push -u origin master
+    steps:
+      - name: gen
+        image: ruby:3.2
+        commands:
+          - git config --global user.name "Rajdeep Malakar"
+          - git config --global user.email "rajdeepm.dev@gmail.com"
+          - gem install ronn-ng
+          - ronn --roff man/hay_flags.md --manual=hay/flags.h --organization="Hay Foundation"
+          - git add man/hay_flags.3
+          - latest_sha=$(git rev-parse --short HEAD)
+          - git commit -s -m "[${latest_sha}] manpage [CI SKIP]"
+      
+      - name: push
+        image: appleboy/drone-git-push
+        settings:
+          remote_name: origin
+          branch: master
+          local_ref: master
