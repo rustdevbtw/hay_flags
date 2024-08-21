@@ -31,4 +31,4 @@ pipeline:
       - git add man/hay_flags.3
       - latest_sha=$(git rev-parse --short HEAD)
       - git commit -s -m "[${latest_sha}] manpage [CI SKIP]"
-      - git push
+      - git push -u origin master
