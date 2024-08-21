@@ -21,8 +21,9 @@ typedef struct flag {
                  is stored. */
 } flag_t;
 
-typedef flag_t *flags_t; /**< Type definition for a pointer to an array of
-                            `flag_t` structures. */
+__attribute__((deprecated(
+    "not recommended. use flag_t* instead"))) typedef flag_t *flags_t; /**< Type
+      definition for a pointer to an array of `flag_t` structures. */
 
 /**
  * @brief Parses command-line arguments and matches them with predefined flags.
@@ -71,7 +72,7 @@ typedef flag_t *flags_t; /**< Type definition for a pointer to an array of
  * "/path/to/dir"};
  *
  * // Parse the flags
- * flags_t parsed_flags = hay_flags_parse(my_flags, argc, argv);
+ * flag_t *parsed_flags = hay_flags_parse(my_flags, argc, argv);
  *
  * if (parsed_flags == NULL) {
  *     // Handle error
@@ -83,7 +84,7 @@ typedef flag_t *flags_t; /**< Type definition for a pointer to an array of
  *     printf("Verbosity: %d\n", verbosity);
  * }
  */
-flags_t hay_flags_parse(flags_t flags, int argc, char **argv);
+flag_t *hay_flags_parse(flag_t *flags, int argc, char **argv);
 
 /**
  * @brief Retrieves the `flag_t` structure associated with a specific flag.
@@ -97,7 +98,7 @@ flags_t hay_flags_parse(flags_t flags, int argc, char **argv);
  * @return A pointer to the `flag_t` structure associated with the specified
  * flag, or NULL if the flag is not found.
  */
-flag_t *hay_flags_get(flags_t flags, char *flag);
+flag_t *hay_flags_get(flag_t *flags, char *flag);
 
 /**
  * @brief Retrieves the value associated with a specific flag.
@@ -111,7 +112,7 @@ flag_t *hay_flags_get(flags_t flags, char *flag);
  * @return The value associated with the specified flag, or NULL if the flag
  * does not have an associated value or if the flag is not found.
  */
-char *hay_flags_get_val(flags_t flags, char *flag);
+char *hay_flags_get_val(flag_t *flags, char *flag);
 
 /**
  * @brief Retrieves the check bit associated with a specific flag.
@@ -126,7 +127,7 @@ char *hay_flags_get_val(flags_t flags, char *flag);
  * @return The value of the check bit associated with the specified flag, or 0
  * if the flag does not have a check bit or if the flag is not found.
  */
-int hay_flags_get_check(flags_t flags, char *flag);
+int hay_flags_get_check(flag_t *flags, char *flag);
 
 /**
  * @brief Retrieves the index of a specific flag.
@@ -140,6 +141,6 @@ int hay_flags_get_check(flags_t flags, char *flag);
  * @return The index of the command-line argument that matches the specified
  * flag, or -1 if the flag is not found or if the index is not set.
  */
-int hay_flags_get_idx(flags_t flags, char *flag);
+int hay_flags_get_idx(flag_t *flags, char *flag);
 
 #endif // HAY_FLAGS_H

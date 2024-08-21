@@ -21,7 +21,19 @@ cmake --build .
 > NOTE: It builds that as a static library (recommended).
   If you want that to be shared, use `-DSHARED_flags=ON` as the CMake option.  
 
-## Testing
+## Contributing
+### Generating manpages
+You can generate the manpage, by modifying the `man/hay_flags.md` file.  
+Once you're done, you'll need `ronn` (`ronn-ng` recommended).  
+
+Assuming you already have it, you can now commit as usual, just be sure to set the `core.hooksPath`  
+for git with:
+```sh
+git config core.hooksPath .hooks
+```
+This way, it'll automatically update the manpage (`man/hay_flags.3`) everytime you push.
+
+### Testing
 This project comes with (some) tests. They're in `tests` dir.  
 You can run them with:
 ```sh
@@ -30,7 +42,7 @@ cd build
 ctest
 ```
 
-## Notes for `clangd` users
+### Notes for `clangd` users
 If you want to contribute to it, or develop on it, you should let `clangd` know about it, by doing:
 ```sh
 # cd into the build dir (assumes you've already built it atleast once)

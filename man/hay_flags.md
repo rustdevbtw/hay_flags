@@ -38,7 +38,7 @@ typedef struct flag {
 } flag_t;
 ```
 
-### flags_t
+### flags_t (deprecated)
 This is just an alias of `flag_t*` (a pointer to `flag_t`).
 
 ## PARAMETERS

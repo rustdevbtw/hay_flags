@@ -58,7 +58,7 @@
  * char *argv[] = {"program", "-p", "8080", "-d", "/path/to/dir"};
  *
  * // Parse the flags
- * flags_t parsed_flags = hay_flags_parse(my_flags, argc, argv);
+ * flag_t *parsed_flags = hay_flags_parse(my_flags, argc, argv);
  *
  * if (parsed_flags == NULL) {
  *     // Handle error
@@ -69,7 +69,7 @@
  *     printf("Directory: %s\n", dir);
  * }
  */
-flag_t *hay_flags_parse(flags_t flags, int argc, char **argv) {
+flag_t *hay_flags_parse(flag_t *flags, int argc, char **argv) {
   if (argc == 0 || argv == NULL) {
     errno = EINVAL;
     return NULL;
@@ -166,7 +166,7 @@ flag_t *hay_flags_parse(flags_t flags, int argc, char **argv) {
  * @return A pointer to the `flag_t` structure associated with the specified
  * flag, or NULL if the flag is not found.
  */
-flag_t *hay_flags_get(flags_t flags, char *flag) {
+flag_t *hay_flags_get(flag_t *flags, char *flag) {
   if (flags == NULL || flag == NULL) {
     return NULL;
   }
@@ -191,7 +191,7 @@ flag_t *hay_flags_get(flags_t flags, char *flag) {
  * @return The value associated with the specified flag, or NULL if the flag
  * does not have an associated value or if the flag is not found.
  */
-char *hay_flags_get_val(flags_t flags, char *flag) {
+char *hay_flags_get_val(flag_t *flags, char *flag) {
   flag_t *f = hay_flags_get(flags, flag);
   if (f != NULL) {
     return *(f->val);
@@ -212,7 +212,7 @@ char *hay_flags_get_val(flags_t flags, char *flag) {
  * @return The value of the check bit associated with the specified flag, or 0
  * if the flag does not have a check bit or if the flag is not found.
  */
-int hay_flags_get_check(flags_t flags, char *flag) {
+int hay_flags_get_check(flag_t *flags, char *flag) {
   flag_t *f = hay_flags_get(flags, flag);
   if (f != NULL && f->check != NULL) {
     return *(f->check);
@@ -232,7 +232,7 @@ int hay_flags_get_check(flags_t flags, char *flag) {
  * @return The index of the command-line argument that matches the specified
  * flag, or -1 if the flag is not found or if the index is not set.
  */
-int hay_flags_get_idx(flags_t flags, char *flag) {
+int hay_flags_get_idx(flag_t *flags, char *flag) {
   flag_t *f = hay_flags_get(flags, flag);
   if (f != NULL && f->idx != NULL) {
     return *(f->idx);
