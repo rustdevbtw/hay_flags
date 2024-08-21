@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Check if `ronn` is available
+if command -v ronn >/dev/null 2>&1; then
+    # Output the ronn version
+    echo "ronn is available. Version:"
+    ronn --version
+
+    # Convert the markdown file to manpage format
+    if ronn --roff man/hay_flags.md --manual=hay/flags.h --organization="Hay Foundation"; then
+        # Check if man/hay_flags.3 is already in the index
+        if ! git diff --cached --quiet man/hay_flags.3; then
+            # Add the generated manpage to staging
+            git add man/hay_flags.3
+
+            # Get the latest commit SHA
+            latest_sha=$(git rev-parse --short HEAD)
+
+            # Commit with the latest SHA and signed commit
+            git commit -m "[${latest_sha}] manpage" -s
+        fi
+    else
+        echo "ronn encountered an error. Aborting commit."
+        exit 1
+    fi
+else
+    echo "ronn is not installed. Proceeding with commit."
+fi

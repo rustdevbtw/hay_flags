@@ -1,5 +1,5 @@
-hay_flags.h(3) -- a command-line argument parser
-================================================
+hay_flags.h(3) -- a simple command-line argument parser
+=======================================================
 
 ## SYNOPSIS
 `flags_t hay_flags_parse(flags_t flags, int argc, char **argv);`  
@@ -44,7 +44,7 @@ This is just an alias of `flag_t*` (a pointer to `flag_t`).
 ## PARAMETERS
 The following parameters are required by the `hay_flags_parse()` function. For others, see [FUNCTIONS](#FUNCTIONS).
 * **`flags`**: 
-  A pointer to an array of **`flag_t`** structures (see [flags_t(3)](#flags_t)). Each **`flag_t`** (see [flag_t(3)](#flag_t)) structure contains a flag string and a pointer to a location where the flag's value should be stored. If this parameter is NULL, the function expects that the caller has provided a valid array of **`flag_t`** structures that will be populated with the parsed results. The caller is responsible for freeing this allocated memory when it is no longer needed.
+  A pointer to an array of **`flag_t`** structures (see [flags_t(3)](#flags_t) (**deprecated**)). Each **`flag_t`** (see [flag_t(3)](#flag_t)) structure contains a flag string and a pointer to a location where the flag's value should be stored. If this parameter is NULL, the function expects that the caller has provided a valid array of **`flag_t`** structures that will be populated with the parsed results. The caller is responsible for freeing this allocated memory when it is no longer needed.
 
 * **`argc`**:
   The number of command-line arguments in the `argv` array. This parameter indicates how many arguments are available for processing.
