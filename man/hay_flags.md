@@ -5,8 +5,8 @@ hay_flags.h(3) -- a simple command-line argument parser
 `flag_t *hay_flags_parse(flag_t *flags, int argc, char **argv);`  
 `flag_t *hay_flags_get(flag_t *flags, char *flag);`  
 `char *hay_flags_get_val(flag_t *flags, char *flag);`  
-`bool hay_flags_get_check(flag_t *flags, char *flag);` 
-`int hay_flags_get_idx(flag_t *flags, char *flag);`  
+`bool hay_flags_get_check(flag_t *flags, char *flag);`  
+`int hay_flags_get_idx(flag_t *flags, char *flag);`
 
 ## DESCRIPTION
 `hay_flags` is a command-line argument parser that's made to be simple-enough.  
