@@ -16,6 +16,7 @@
 #if __STDC_VERSION__ < 199901L
 #typedef int bool;
 #else
+#include <stdbool.h>
 #include <stddef.h>
 #endif
 
