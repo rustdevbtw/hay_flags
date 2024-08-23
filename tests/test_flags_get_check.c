@@ -1,23 +1,20 @@
 #include <assert.h>
 #include <hay/flags.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 int main() {
   char *argv[] = {"hello", "--verbose", "-p", "3000"};
   int argc = 4;
 
-  int vc = 0;
+  bool vc = false;
   flag_t flags[] = {
-      {"-p"}, {"--port"}, {"--dir"}, {"-d"}, {"--verbose", NULL, &vc}};
+      {"-p"}, {"--port"}, {"--dir"}, {"-d"}, {"--verbose", nullptr, &vc}};
 
   void *r = hay_flags_parse(flags, argc, argv);
 
-  assert(r != NULL);
-  int c = hay_flags_get_check(flags, "--verbose");
-  assert(c == 1);
-  assert(vc == 1);
+  assert(r != nullptr);
+  bool c = hay_flags_get_check(flags, "--verbose");
+  assert(c == true);
+  assert(vc == true);
 
   return 0;
 }

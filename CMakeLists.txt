@@ -43,7 +43,7 @@ install(TARGETS ${LIBRARY_NAME}
 install(DIRECTORY include/ DESTINATION include)
 
 # Set library version
-set_target_properties(${LIBRARY_NAME} PROPERTIES VERSION 0.0.1 SOVERSION 0)
+set_target_properties(${LIBRARY_NAME} PROPERTIES VERSION 0.0.1 SOVERSION 0 C_STANDARD 23)
 
 if(BUILD_tests)
     # Enable testing
@@ -60,6 +60,7 @@ if(BUILD_tests)
         add_executable(${test_name} ${test_file})
         # Link the executable with the library and the math library
         target_link_libraries(${test_name} PRIVATE ${LIBRARY_NAME})
+        set_property(TARGET ${test_name} PROPERTY C_STANDARD 23)
         # Define the test case
         add_test(NAME ${test_name} COMMAND ${test_name})
     endforeach()

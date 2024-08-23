@@ -1,8 +1,5 @@
 #include <assert.h>
 #include <hay/flags.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 int main() {
   char *argv[] = {"hello", "-p", "3000", "--dir", "src/"};
@@ -12,12 +9,12 @@ int main() {
 
   void *r = hay_flags_parse(flags, argc, argv);
 
-  assert(r != NULL);
+  assert(r != nullptr);
   char *port = hay_flags_get_val(flags, "-p");
-  assert(port != NULL);
+  assert(port != nullptr);
   assert(strcmp(port, "3000") == 0);
   char *dir = hay_flags_get_val(flags, "-d");
-  assert(dir == NULL);
+  assert(dir == nullptr);
 
   return 0;
 }

@@ -1,6 +1,24 @@
 #ifndef HAY_FLAGS_H
 #define HAY_FLAGS_H
 
+// C23 compat
+#if __STDC__ != 1
+#error "[hay/flags] Not a standard compliant compiler"
+#endif
+
+#if __STDC_VERSION__ < 202311L
+#include <stddef.h>
+#define nullptr NULL
+#define true 1
+#define false 0
+#endif
+
+#if __STDC_VERSION__ < 199901L
+#typedef int bool;
+#else
+#include <stddef.h>
+#endif
+
 #define MAX_FLAGS                                                              \
   1024 /**< Maximum number of flags or characters for temporary storage. */
 
@@ -11,14 +29,14 @@
  * that flag will be stored. It also optionally holds a check bit and index.
  */
 typedef struct flag {
-  char *flag; /**< The flag string (e.g., "-p" or "--port"). */
-  char *
-      *val;   /**< Pointer to a variable where the flag's value will be stored.
-                 This pointer may be NULL if the flag does not require a value. */
-  int *check; /**< Pointer to an integer used as a check bit. If not NULL, it
-                 will be set to 1 if the flag is matched. */
-  int *idx;   /**< Pointer to an integer where the index of the matched argument
-                 is stored. */
+  char *flag;  /**< The flag string (e.g., "-p" or "--port"). */
+  char **val;  /**< Pointer to a variable where the flag's value will be stored.
+                  This pointer may be nullptr if the flag does not require a
+                  value. */
+  bool *check; /**< Pointer to an integer used as a check bit. If not nullptr
+                 (NULL), it will be set to 1 (true) if the flag is matched. */
+  int *idx; /**< Pointer to an integer where the index of the matched argument
+               is stored. */
 } flag_t;
 
 __attribute__((deprecated(
@@ -42,16 +60,16 @@ __attribute__((deprecated(
  * @param argv The array of command-line arguments.
  * @return Returns the `flags` array on success. If parsing fails or if any flag
  * is missing its required argument, the function sets `errno` to an appropriate
- * error code and returns NULL.
+ * error code and returns nullptr.
  *
- * @retval NULL If an error occurs. The global `errno` is set to indicate the
+ * @retval nullptr If an error occurs. The global `errno` is set to indicate the
  * specific error.
- * @retval EINVAL If `flags` or `argv` is NULL, or if an unrecognized flag is
+ * @retval EINVAL If `flags` or `argv` is nullptr, or if an unrecognized flag is
  * encountered, or if a required argument is missing.
  * @retval ENOMEM If memory allocation fails while storing flag values.
  *
- * @note The `val` field in `flag_t` structures can be NULL if the flag does not
- * require a value. The function will handle memory allocation for `val` and
+ * @note The `val` field in `flag_t` structures can be nullptr if the flag does
+ * not require a value. The function will handle memory allocation for `val` and
  * should be managed properly.
  *
  * @example
@@ -64,7 +82,7 @@ __attribute__((deprecated(
  *     {"--port", &port},
  *     {"-d", &dir},
  *     {"--dir", &dir},
- *     {"--verbose", NULL, &verbosity}
+ *     {"--verbose", nullptr, &verbosity}
  * };
  *
  * int argc = 10;
@@ -74,7 +92,7 @@ __attribute__((deprecated(
  * // Parse the flags
  * flag_t *parsed_flags = hay_flags_parse(my_flags, argc, argv);
  *
- * if (parsed_flags == NULL) {
+ * if (parsed_flags == nullptr) {
  *     // Handle error
  *     perror("Failed to parse flags");
  * } else {
@@ -91,12 +109,12 @@ flag_t *hay_flags_parse(flag_t *flags, int argc, char **argv);
  *
  * This function searches for the specified flag in the `flags` array and
  * returns the corresponding `flag_t` structure if found. If the flag is not
- * found, the function returns NULL.
+ * found, the function returns nullptr.
  *
  * @param flags Pointer to an array of `flag_t` structures.
  * @param flag The flag string to search for.
  * @return A pointer to the `flag_t` structure associated with the specified
- * flag, or NULL if the flag is not found.
+ * flag, or nullptr if the flag is not found.
  */
 flag_t *hay_flags_get(flag_t *flags, char *flag);
 
@@ -105,11 +123,11 @@ flag_t *hay_flags_get(flag_t *flags, char *flag);
  *
  * This function retrieves the value stored in the `val` field of the `flag_t`
  * structure associated with the specified flag. If the flag does not have an
- * associated value, or if the flag is not found, the function returns NULL.
+ * associated value, or if the flag is not found, the function returns nullptr.
  *
  * @param flags Pointer to an array of `flag_t` structures.
  * @param flag The flag string whose value is to be retrieved.
- * @return The value associated with the specified flag, or NULL if the flag
+ * @return The value associated with the specified flag, or nullptr if the flag
  * does not have an associated value or if the flag is not found.
  */
 char *hay_flags_get_val(flag_t *flags, char *flag);
@@ -127,7 +145,7 @@ char *hay_flags_get_val(flag_t *flags, char *flag);
  * @return The value of the check bit associated with the specified flag, or 0
  * if the flag does not have a check bit or if the flag is not found.
  */
-int hay_flags_get_check(flag_t *flags, char *flag);
+bool hay_flags_get_check(flag_t *flags, char *flag);
 
 /**
  * @brief Retrieves the index of a specific flag.
