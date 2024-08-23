@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <hay/flags.h>
+#include <string.h>
 
 int main() {
   char *argv[] = {"hello", "-p", "3000", "--dir", "src/"};
