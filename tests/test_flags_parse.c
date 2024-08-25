@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <errno.h>
 #include <hay/flags.h>
 
 int main() {
