@@ -169,8 +169,11 @@ int hay_flags_parse(flag_t **flags, int argc, char **argv) {
                 switch (flag->type) {
                 case FT_INT:
                   if (sscanf(v, "%d", &flag->val.val_int) != 1) {
+                    perror("hay_flags_parse(int)");
+                    errno = EINVAL;
                     continue; // Skip if value cannot be parsed as integer.
                   }
+                  flag->is_set = true;
                   break;
                 case FT_STR:
                   flag->val.val_str = strdup(v);
@@ -179,15 +182,19 @@ int hay_flags_parse(flag_t **flags, int argc, char **argv) {
                     errno = ENOMEM; // Set errno to ENOMEM for memory issues.
                     continue;
                   }
+                  flag->is_set = true;
                   break;
                 case FT_BOOL:
                   if (strcmp(v, "true") == 0) {
                     flag->val.val_bool = true;
+                    flag->is_set = true;
                   } else if (strcmp(v, "false") == 0) {
                     flag->val.val_bool = false;
+                    flag->is_set = true;
                   } else {
                     flag->val.val_bool =
                         true; // Default to true for unknown values.
+                    flag->is_set = true;
                   }
                   break;
                 default:
