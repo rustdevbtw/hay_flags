@@ -6,11 +6,11 @@ int main() {
                   "src",    "-p",  "4000",   "-e",   "true"};
   int argc = 10;
 
-  flag_t *port = hay_flags_create("port", FT_INT, 'p');
-  flag_t *dir = hay_flags_create("dir", FT_STR, 'd');
-  flag_t *repl = hay_flags_create("repl", FT_NULL, 'r');
-  flag_t *verbose = hay_flags_create("verbose", FT_NULL, 'V');
-  flag_t *enable = hay_flags_create("enable", FT_BOOL, 'e');
+  flag_t *port = hay_flags_create("port", 'p', FT_INT);
+  flag_t *dir = hay_flags_create("dir", 'd', FT_STR);
+  flag_t *repl = hay_flags_create("repl", 'r', FT_NULL);
+  flag_t *verbose = hay_flags_create("verbose", 'V', FT_NULL);
+  flag_t *enable = hay_flags_create("enable", 'e', FT_BOOL);
 
   assert(port != nullptr);
 

@@ -155,7 +155,7 @@ int hay_flags_parse(flag_t **flags, int argc, char **argv) {
             flag->is_set = true; // Mark the flag as set.
           }
         } else {
-          // Short option (e.g., -v or -v=value)
+          // Short option (e.g., -v or -v value)
           for (int k = 1; arg[k] != '\0'; k++) {
             char f = arg[k];
             if (flag->short_name == f) {
@@ -282,23 +282,4 @@ bool hay_flags_getbool(flag_t *flag, const bool defval) {
     return flag->val.val_bool;
   }
   return defval;
-}
-
-/**
- * @brief Frees the memory used by a flag structure.
- *
- * Frees all allocated memory associated with the flag, including its name and
- * value storage. After calling this function, the flag pointer is set to
- * nullptr.
- *
- * @param flag Pointer to the flag structure to be freed.
- */
-void hay_flags_destroy(flag_t *flag) {
-  if (flag) {
-    SAFE_FREE(flag->name);
-    if (flag->type == FT_STR) {
-      SAFE_FREE(flag->val.val_str);
-    }
-    SAFE_FREE(flag);
-  }
 }
