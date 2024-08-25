@@ -5,246 +5,300 @@
 #include <string.h>
 
 /**
- * @brief Parses command-line arguments and matches them with predefined flags.
+ * @def SAFE_FREE(ptr)
+ * @brief Safely frees a pointer and sets it to nullptr.
  *
- * This function processes the command-line arguments (`argv`) and attempts
- * to match each argument with the flags specified in the `flags` array.
- * If a flag is found, its corresponding value is stored in the `val` field
- * of the `flag_t` structure associated with that flag.
+ * This macro checks if the pointer is not NULL before freeing it, and then
+ * sets the pointer to nullptr to avoid dangling pointers.
  *
- * The function operates as follows:
- * - If `flags` is nullptr, the function allocates memory for an array of
- * `flag_t` structures using `malloc`.
- * - It then iterates over the command-line arguments to find and match flags.
- * - If a flag is found, it checks if the `check` bit of it is nullptr. If it
- * is, it then checks if it's corresponding argument is provided. If that's
- * there, then the value will be stored in `val`, and it's index is stored in
- * `idx`.
- * - If the `check` bit is not nullptr, it'll then simply set that to 1 (true),
- *   and set `idx` to the index. It doesn't touch `val` in such a case.
- * - If the `flags` parameter is not nullptr, it will be used to store the
- * parsed results.
- * - On successful parsing, the function returns the `flags` array. If any error
- *   occurs (e.g., missing argument or memory allocation failure), the function
- * sets `errno` to `EINVAL` and returns nullptr.
+ * @param ptr Pointer to be freed.
+ */
+#define SAFE_FREE(ptr)                                                         \
+  do {                                                                         \
+    if (ptr) {                                                                 \
+      free(ptr);                                                               \
+      ptr = nullptr;                                                           \
+    }                                                                          \
+  } while (0)
+
+/**
+ * @brief Creates a new flag structure.
  *
- * @param flags Pointer to an array of `flag_t` structures. If nullptr, the
- * function allocates memory for this array. If not nullptr, it is assumed to be
- * a valid array of `flag_t` structures that will be filled with the parsed
- * results. The caller is responsible for freeing the allocated memory when it
- * is no longer needed.
+ * Allocates memory for a new flag and initializes it with the provided name,
+ * short name, type, and aliases.
+ *
+ * @param name The long name of the flag (e.g., "verbose"). This string is
+ *             duplicated using `strdup`, so the caller should ensure it is
+ *             a valid null-terminated string.
+ * @param short_name The short name of the flag (e.g., 'v'). Use 0 if no
+ *                   short name is needed.
+ * @param type The type of the flag (FT_STR, FT_INT, FT_BOOL). This determines
+ *             how the flag value will be stored and processed.
+ * @return Pointer to the newly created flag_t structure, or nullptr if an
+ *         error occurs. In case of error, `errno` is set to indicate the error.
+ *
+ * @note The returned `flag_t` structure must be freed by the caller when no
+ *       longer needed.
+ */
+flag_t *hay_flags_create(const char *name, const char short_name,
+                         flag_ty_t type) {
+  if (!name) {
+    errno = EINVAL; // Set errno to EINVAL if the provided name is null.
+    return nullptr;
+  }
+
+  // Allocate memory for the flag structure.
+  flag_t *flag = malloc(sizeof(flag_t));
+  if (!flag) {
+    perror("hay_flags_create()"); // Print error message if malloc fails.
+    errno = ENOMEM; // Set errno to ENOMEM to indicate memory issue.
+    return nullptr;
+  }
+
+  // Duplicate the flag name and check for errors.
+  flag->name = strdup(name);
+  if (!flag->name) {
+    perror("strdup()"); // Print error message if strdup fails.
+    SAFE_FREE(flag);    // Free allocated memory to avoid memory leaks.
+    errno = ENOMEM;     // Set errno to ENOMEM to indicate memory issue.
+    return nullptr;
+  }
+
+  // Initialize other flag members.
+  flag->short_name = short_name;
+  flag->type = type;
+  flag->is_set = false; // Set flag as not set initially.
+
+  return flag;
+}
+
+/**
+ * @brief Parses command-line arguments and sets the corresponding flags.
+ *
+ * Processes the command-line arguments and updates the flag values based on
+ * the parsed options. Supports both long and short flags.
+ *
+ * @param flags Array of pointers to flag_t structures, terminated by nullptr.
+ *              Each flag in the array is checked against the arguments.
  * @param argc The number of command-line arguments.
- * @param argv The array of command-line arguments.
- * @return Returns the `flags` array on success. If `flags` was nullptr, the
- * function allocates memory for it and returns the pointer. If parsing fails or
- * if any flag is missing its required argument, the function sets `errno` to
- *         `EINVAL` and returns nullptr.
+ * @param argv The command-line argument vector.
+ * @return 0 on success, or -1 if an error occurs. In case of error, `errno` is
+ *         set to indicate the error.
  *
- * @note The caller must ensure that `flag_t` structures have valid pointers for
- *       `flag` and `val`. Specifically, `flag->val` should be a valid pointer
- * to a memory area where the argument value can be copied.
- *
- * @see flag_t
- *
- * @example
- * // Example usage
- * char port[256];
- * char dir[256];
- * flag_t my_flags[] = {
- *     {"-p", &port},
- *     {"-d", &dir}
- * };
- *
- * int argc = 5;
- * char *argv[] = {"program", "-p", "8080", "-d", "/path/to/dir"};
- *
- * // Parse the flags
- * flag_t *parsed_flags = hay_flags_parse(my_flags, argc, argv);
- *
- * if (parsed_flags == nullptr) {
- *     // Handle error
- *     perror("Failed to parse flags");
- * } else {
- *     // Successfully parsed
- *     printf("Port: %s\n", port);
- *     printf("Directory: %s\n", dir);
- * }
+ * @note The flags array must be terminated with a nullptr to indicate the end
+ *       of the array.
  */
-flag_t *hay_flags_parse(flag_t *flags, int argc, char **argv) {
-  if (argc == 0 || argv == nullptr) {
-    errno = EINVAL;
-    return nullptr;
-  }
-  if (flags == nullptr) {
-    fprintf(stderr, "hay_flags_parse: flags cannot be nullptr\n");
-    errno = EINVAL;
-    return nullptr;
+int hay_flags_parse(flag_t **flags, int argc, char **argv) {
+  if (!flags || !argv) {
+    errno = EINVAL; // Set errno to EINVAL if either flags or argv is null.
+    return -1;
   }
 
-  for (int i = 0; i < argc; i++) {
-    if (argv[i] == nullptr) {
-      fprintf(stderr, "hay_flags_parse: Null argument encountered\n");
-      errno = EINVAL;
-      return nullptr;
+  // Iterate over command-line arguments starting from index 1 (skip program
+  // name).
+  for (int i = 1; i < argc; i++) {
+    char *arg = argv[i];
+    if (!arg) {
+      continue; // Skip null arguments.
     }
 
-    flag_t *found_flag = malloc(sizeof(flag_t));
-    found_flag = nullptr;
-    for (int j = 0; flags[j].flag != nullptr; j++) {
-      flag_t *flag = &flags[j];
-      if (flag->check == nullptr && flag->val == nullptr)
-        flag->val = malloc(sizeof(char *));
-      if (flag->flag == nullptr)
-        break;
-      if (strcmp(flag->flag, argv[i]) == 0) {
-        found_flag = flag;
-        break;
+    // Iterate over the array of flags.
+    for (int j = 0; flags[j] != nullptr; j++) {
+      flag_t *flag = flags[j];
+      if (!flag) {
+        continue; // Skip null flag pointers.
       }
-    }
 
-    if (found_flag == nullptr) {
-      continue;
-    }
+      if (arg[0] == '-') {
+        if (arg[1] == '-') {
+          // Long option (e.g., --verbose)
+          if (strcmp(&arg[2], flag->name) == 0) {
+            if (i + 1 < argc) {
+              char *v = argv[++i];
+              if (!v) {
+                continue; // Skip if no value is provided after the flag.
+              }
 
-    if (found_flag != nullptr) {
-      flag_t *current_flag = found_flag;
-
-      if (current_flag->check != nullptr) {
-        *current_flag->check = true;
-        if (current_flag->idx == nullptr) {
-          current_flag->idx = malloc(sizeof(int));
-          if (current_flag->idx == nullptr) {
-            perror("hay_flags_parse: malloc(current_flag->idx)");
-            errno = ENOMEM;
-            return nullptr;
-          }
-        }
-        *current_flag->idx = i;
-      } else {
-        // Move to the next argument which should be the value for the flag
-        if (++i < argc) {
-          if (current_flag->val == nullptr) {
-            current_flag->val = malloc(sizeof(char *));
-            if (current_flag->val == nullptr) {
-              perror("hay_flags_parse: malloc(current_flag->val)");
-              errno = ENOMEM;
-              return nullptr;
+              // Set the flag value based on its type.
+              switch (flag->type) {
+              case FT_INT:
+                if (sscanf(v, "%d", &flag->val.val_int) != 1) {
+                  continue; // Skip if value cannot be parsed as integer.
+                }
+                break;
+              case FT_STR:
+                flag->val.val_str = strdup(v);
+                if (!flag->val.val_str) {
+                  perror("strdup()"); // Print error if strdup fails.
+                  errno = ENOMEM;     // Set errno to ENOMEM for memory issues.
+                  continue;
+                }
+                break;
+              case FT_BOOL:
+                if (strcmp(v, "true") == 0) {
+                  flag->val.val_bool = true;
+                } else if (strcmp(v, "false") == 0) {
+                  flag->val.val_bool = false;
+                } else {
+                  flag->val.val_bool =
+                      true; // Default to true for unknown values.
+                }
+                break;
+              default:
+                continue; // Skip unsupported flag types.
+              }
+            } else if (flag->type == FT_NULL) {
+              flag->is_set = true; // Mark null flags as set.
+            } else {
+              continue; // Skip if value is missing and type is not FT_NULL.
             }
+            flag->is_set = true; // Mark the flag as set.
           }
-
-          // Copy the argument value into the appropriate location
-          *current_flag->val = argv[i];
-          if (current_flag->idx == nullptr) {
-            current_flag->idx = malloc(sizeof(int));
-            if (current_flag->idx == nullptr) {
-              perror("hay_flags_parse: malloc(current_flag->idx)");
-              errno = ENOMEM;
-              return nullptr;
-            }
-          }
-          *current_flag->idx = i;
         } else {
-          // Missing value for the flag
-          fprintf(stderr, "hay_flags_parse: Missing argument for %s\n",
-                  current_flag->flag);
-          errno = EINVAL;
-          return nullptr;
+          // Short option (e.g., -v or -v=value)
+          for (int k = 1; arg[k] != '\0'; k++) {
+            char f = arg[k];
+            if (flag->short_name == f) {
+              if (arg[k + 1] == '\0' && i + 1 < argc && flag->type != FT_NULL) {
+                char *v = argv[++i];
+                if (!v) {
+                  continue; // Skip if no value is provided after the flag.
+                }
+
+                // Set the flag value based on its type.
+                switch (flag->type) {
+                case FT_INT:
+                  if (sscanf(v, "%d", &flag->val.val_int) != 1) {
+                    continue; // Skip if value cannot be parsed as integer.
+                  }
+                  break;
+                case FT_STR:
+                  flag->val.val_str = strdup(v);
+                  if (!flag->val.val_str) {
+                    perror("strdup()"); // Print error if strdup fails.
+                    errno = ENOMEM; // Set errno to ENOMEM for memory issues.
+                    continue;
+                  }
+                  break;
+                case FT_BOOL:
+                  if (strcmp(v, "true") == 0) {
+                    flag->val.val_bool = true;
+                  } else if (strcmp(v, "false") == 0) {
+                    flag->val.val_bool = false;
+                  } else {
+                    flag->val.val_bool =
+                        true; // Default to true for unknown values.
+                  }
+                  break;
+                default:
+                  continue; // Skip unsupported flag types.
+                }
+              } else if (flag->type == FT_NULL) {
+                flag->is_set = true; // Mark null flags as set.
+                continue;
+              } else {
+                continue; // Skip if value is missing and type is not FT_NULL.
+              }
+            }
+          }
         }
       }
     }
   }
 
-  return flags;
+  return 0;
 }
 
 /**
- * @brief Retrieves the `flag_t` structure associated with a specific flag.
+ * @brief Retrieves the value of a null flag or returns a default value.
  *
- * This function searches for the specified flag in the `flags` array and
- * returns the corresponding `flag_t` structure if found. If the flag is not
- * found, the function returns nullptr.
+ * Checks if the specified flag is a null type and if it is set. If so, returns
+ * true; otherwise, returns the provided default value.
  *
- * @param flags Pointer to an array of `flag_t` structures.
- * @param flag The flag string to search for.
- * @return A pointer to the `flag_t` structure associated with the specified
- * flag, or nullptr if the flag is not found.
+ * @param flag Pointer to the flag to check.
+ * @param defval The default value to return if the flag is not set or not a
+ * null type.
+ * @return true if the flag is a null type and is set, otherwise returns defval.
  */
-flag_t *hay_flags_get(flag_t *flags, char *flag) {
-  if (flags == nullptr || flag == nullptr) {
-    return nullptr;
+bool hay_flags_getnull(flag_t *flag, const bool defval) {
+  if (flag && flag->is_set && flag->type == FT_NULL) {
+    return true;
   }
+  return defval;
+}
 
-  for (int i = 0; flags[i].flag != nullptr; i++) {
-    if (strcmp(flags[i].flag, flag) == 0) {
-      return &flags[i];
+/**
+ * @brief Retrieves the value of an integer flag or returns a default value.
+ *
+ * Checks if the specified flag is of integer type and if it is set. If so,
+ * returns the flag's integer value; otherwise, returns the provided default
+ * value.
+ *
+ * @param flag Pointer to the flag to check.
+ * @param defval The default value to return if the flag is not set or not an
+ * integer type.
+ * @return The integer value of the flag if set, otherwise returns defval.
+ */
+int hay_flags_getint(flag_t *flag, const int defval) {
+  if (flag && flag->is_set && flag->type == FT_INT) {
+    return flag->val.val_int;
+  }
+  return defval;
+}
+
+/**
+ * @brief Retrieves the value of a string flag or returns a default value.
+ *
+ * Checks if the specified flag is of string type and if it is set. If so,
+ * returns the flag's string value; otherwise, returns the provided default
+ * value.
+ *
+ * @param flag Pointer to the flag to check.
+ * @param defval The default value to return if the flag is not set or not a
+ * string type.
+ * @return The string value of the flag if set, otherwise returns defval.
+ */
+const char *hay_flags_getstr(flag_t *flag, const char *defval) {
+  if (flag && flag->is_set && flag->type == FT_STR) {
+    return flag->val.val_str;
+  }
+  return defval;
+}
+
+/**
+ * @brief Retrieves the value of a boolean flag or returns a default value.
+ *
+ * Checks if the specified flag is of boolean type and if it is set. If so,
+ * returns the flag's boolean value; otherwise, returns the provided default
+ * value.
+ *
+ * @param flag Pointer to the flag to check.
+ * @param defval The default value to return if the flag is not set or not a
+ * boolean type.
+ * @return The boolean value of the flag if set, otherwise returns defval.
+ */
+bool hay_flags_getbool(flag_t *flag, const bool defval) {
+  if (flag && flag->is_set && flag->type == FT_BOOL) {
+    return flag->val.val_bool;
+  }
+  return defval;
+}
+
+/**
+ * @brief Frees the memory used by a flag structure.
+ *
+ * Frees all allocated memory associated with the flag, including its name and
+ * value storage. After calling this function, the flag pointer is set to
+ * nullptr.
+ *
+ * @param flag Pointer to the flag structure to be freed.
+ */
+void hay_flags_destroy(flag_t *flag) {
+  if (flag) {
+    SAFE_FREE(flag->name);
+    if (flag->type == FT_STR) {
+      SAFE_FREE(flag->val.val_str);
     }
+    SAFE_FREE(flag);
   }
-  return nullptr;
-}
-
-/**
- * @brief Retrieves the value associated with a specific flag.
- *
- * This function retrieves the value stored in the `val` field of the `flag_t`
- * structure associated with the specified flag. If the flag does not have an
- * associated value, or if the flag is not found, the function returns nullptr.
- *
- * @param flags Pointer to an array of `flag_t` structures.
- * @param flag The flag string whose value is to be retrieved.
- * @return The value associated with the specified flag, or nullptr if the flag
- * does not have an associated value or if the flag is not found.
- */
-char *hay_flags_get_val(flag_t *flags, char *flag) {
-  flag_t *f = hay_flags_get(flags, flag);
-  if (f != nullptr) {
-    if (f->val != nullptr) {
-      return *(f->val);
-    } else {
-      return nullptr;
-    }
-  }
-  return nullptr;
-}
-
-/**
- * @brief Retrieves the check bit associated with a specific flag.
- *
- * This function retrieves the value of the check bit stored in the `check`
- * field of the `flag_t` structure associated with the specified flag. If the
- * flag does not have a check bit, or if the flag is not found, the function
- * returns 0.
- *
- * @param flags Pointer to an array of `flag_t` structures.
- * @param flag The flag string whose check bit is to be retrieved.
- * @return The value of the check bit associated with the specified flag, or 0
- * if the flag does not have a check bit or if the flag is not found.
- */
-bool hay_flags_get_check(flag_t *flags, char *flag) {
-  flag_t *f = hay_flags_get(flags, flag);
-  if (f != nullptr) {
-    if (f->check == nullptr)
-      return true;
-    return *(f->check);
-  }
-  return false;
-}
-
-/**
- * @brief Retrieves the index of a specific flag.
- *
- * This function retrieves the index of the command-line argument that matches
- * the specified flag. If the flag is not found, or if the index is not set,
- * the function returns -1.
- *
- * @param flags Pointer to an array of `flag_t` structures.
- * @param flag The flag string whose index is to be retrieved.
- * @return The index of the command-line argument that matches the specified
- * flag, or -1 if the flag is not found or if the index is not set.
- */
-int hay_flags_get_idx(flag_t *flags, char *flag) {
-  flag_t *f = hay_flags_get(flags, flag);
-  if (f != nullptr && f->idx != nullptr) {
-    return *(f->idx);
-  }
-  return -1;
 }

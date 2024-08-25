@@ -10,9 +10,12 @@ int main() {
   flag_t *repl = hay_flags_create("repl", FT_NULL, 'R');
   flag_t *verbose = hay_flags_create("verbose", FT_NULL, 'V');
 
-  flag_t *flags[] = {port, dir, repl, verbose};
-  int res = hay_flags_parse(flags, argc, argv);
+  assert(repl != nullptr);
+  assert(verbose != nullptr);
 
-  assert(errno == 0);
-  assert(res == 0);
+  bool r = hay_flags_getnull(repl, false);
+  bool v = hay_flags_getnull(verbose, true);
+
+  assert(r == false);
+  assert(v == true);
 }

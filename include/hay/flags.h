@@ -1,7 +1,16 @@
+/**
+ * @file hay/flags.h
+ * @brief Flag parsing library for command-line applications.
+ *
+ * This header defines a simple API for creating and parsing command-line flags
+ * in C. It supports string, integer, and boolean flags, with optional short
+ * names.
+ */
+
 #ifndef HAY_FLAGS_H
 #define HAY_FLAGS_H
 
-// C23 compat
+// C23 compatibility checks
 #if __STDC__ != 1
 #error "[hay/flags] Not a standard compliant compiler"
 #endif
@@ -20,146 +29,122 @@
 #include <stddef.h>
 #endif
 
-#define MAX_FLAGS                                                              \
-  1024 /**< Maximum number of flags or characters for temporary storage. */
+/**
+ * @enum flag_ty_t
+ * @brief Enum representing the type of a flag.
+ */
+typedef enum {
+  FT_NULL, ///< Represents a null type, used for uninitialized flags.
+  FT_STR,  ///< String type flag.
+  FT_INT,  ///< Integer type flag.
+  FT_BOOL  ///< Boolean type flag.
+} flag_ty_t;
 
 /**
- * @brief Represents a single flag and its associated value.
+ * @union flag_v_t
+ * @brief Union to store the value of a flag.
+ */
+typedef union {
+  const char *val_str; ///< Value if the flag is of type FT_STR.
+  int val_int;         ///< Value if the flag is of type FT_INT.
+  bool val_bool;       ///< Value if the flag is of type FT_BOOL.
+} flag_v_t;
+
+/**
+ * @struct flag
+ * @brief Structure representing a command-line flag.
  *
- * This structure holds a flag string and a pointer to where the value for
- * that flag will be stored. It also optionally holds a check bit and index.
+ * This structure holds information about a command-line flag, including its
+ * name, short name, type, value, and whether it has been set by the user.
  */
 typedef struct flag {
-  char *flag;  /**< The flag string (e.g., "-p" or "--port"). */
-  char **val;  /**< Pointer to a variable where the flag's value will be stored.
-                  This pointer may be nullptr if the flag does not require a
-                  value. */
-  bool *check; /**< Pointer to an integer used as a check bit. If not nullptr
-                 (NULL), it will be set to 1 (true) if the flag is matched. */
-  int *idx; /**< Pointer to an integer where the index of the matched argument
-               is stored. */
+  char *name;      ///< The long name of the flag (e.g., "verbose").
+  char short_name; ///< The short name of the flag (e.g., 'v'), 0 if none.
+  flag_ty_t type;  ///< The type of the flag (string, integer, boolean).
+  flag_v_t val;    ///< The value of the flag.
+  bool is_set;     ///< Boolean indicating if the flag has been set.
 } flag_t;
 
-__attribute__((deprecated(
-    "not recommended. use flag_t* instead"))) typedef flag_t *flags_t; /**< Type
-      definition for a pointer to an array of `flag_t` structures. */
+/**
+ * @brief Creates a new flag.
+ *
+ * Initializes a new flag with the specified name, short name, and type.
+ *
+ * @param name The long name of the flag (e.g., "verbose").
+ * @param short_name The short name of the flag (e.g., 'v'), use 0 if none.
+ * @param type The type of the flag (FT_STR, FT_INT, FT_BOOL).
+ * @return A pointer to the newly created flag.
+ *
+ * @note The returned pointer must be freed by the caller after use.
+ */
+flag_t *hay_flags_create(const char *name, const char short_name,
+                         flag_ty_t type);
 
 /**
- * @brief Parses command-line arguments and matches them with predefined flags.
+ * @brief Parses command-line arguments and sets the corresponding flags.
  *
- * This function processes the command-line arguments (`argv`) and attempts
- * to match each argument with the flags specified in the `flags` array.
- * If a flag is found, its corresponding value is stored in the `val` field
- * of the `flag_t` structure associated with that flag. Memory is allocated
- * for the values as needed.
+ * Iterates over the provided command-line arguments and sets the corresponding
+ * flags based on the input.
  *
- * @param flags Pointer to an array of `flag_t` structures. It is assumed to be
- * a valid array of `flag_t` structures that will be filled with the parsed
- * results. The caller is responsible for freeing the allocated memory when it
- * is no longer needed.
- * @param argc The number of command-line arguments.
- * @param argv The array of command-line arguments.
- * @return Returns the `flags` array on success. If parsing fails or if any flag
- * is missing its required argument, the function sets `errno` to an appropriate
- * error code and returns nullptr.
+ * @param flags Array of pointers to flag_t structures, terminated by nullptr.
+ * @param argc The argument count from main().
+ * @param argv The argument vector from main().
+ * @return 0 on success, or a negative error code on failure.
  *
- * @retval nullptr If an error occurs. The global `errno` is set to indicate the
- * specific error.
- * @retval EINVAL If `flags` or `argv` is nullptr, or if an unrecognized flag is
- * encountered, or if a required argument is missing.
- * @retval ENOMEM If memory allocation fails while storing flag values.
- *
- * @note The `val` field in `flag_t` structures can be nullptr if the flag does
- * not require a value. The function will handle memory allocation for `val` and
- * should be managed properly.
- *
- * @example
- * // Example usage
- * char port[256];
- * char dir[256];
- * int verbosity = 0;
- * flag_t my_flags[] = {
- *     {"-p", &port},
- *     {"--port", &port},
- *     {"-d", &dir},
- *     {"--dir", &dir},
- *     {"--verbose", nullptr, &verbosity}
- * };
- *
- * int argc = 10;
- * char *argv[] = {"program", "-p", "8080", "--verbose", "--port", "5000", "-d",
- * "/path/to/dir"};
- *
- * // Parse the flags
- * flag_t *parsed_flags = hay_flags_parse(my_flags, argc, argv);
- *
- * if (parsed_flags == nullptr) {
- *     // Handle error
- *     perror("Failed to parse flags");
- * } else {
- *     // Successfully parsed
- *     printf("Port: %s\n", port);
- *     printf("Directory: %s\n", dir);
- *     printf("Verbosity: %d\n", verbosity);
- * }
+ * @note The flags array must contain all the possible flags that can be set
+ *       by the command-line arguments.
  */
-flag_t *hay_flags_parse(flag_t *flags, int argc, char **argv);
+int hay_flags_parse(flag_t **flags, int argc, char **argv);
 
 /**
- * @brief Retrieves the `flag_t` structure associated with a specific flag.
+ * @brief Retrieves the value of a null flag, or a default if not set.
  *
- * This function searches for the specified flag in the `flags` array and
- * returns the corresponding `flag_t` structure if found. If the flag is not
- * found, the function returns nullptr.
+ * Returns the value of the given null flag, or the provided default value if
+ * the flag is not set.
  *
- * @param flags Pointer to an array of `flag_t` structures.
- * @param flag The flag string to search for.
- * @return A pointer to the `flag_t` structure associated with the specified
- * flag, or nullptr if the flag is not found.
+ * @param flag Pointer to the flag to retrieve the value from.
+ * @param defval The default value to return if the flag is not set.
+ * @return The null value of the flag, or defval if not set.
  */
-flag_t *hay_flags_get(flag_t *flags, char *flag);
+bool hay_flags_getnull(flag_t *flag, const bool defval);
 
 /**
- * @brief Retrieves the value associated with a specific flag.
+ * @brief Retrieves the value of an integer flag, or a default if not set.
  *
- * This function retrieves the value stored in the `val` field of the `flag_t`
- * structure associated with the specified flag. If the flag does not have an
- * associated value, or if the flag is not found, the function returns nullptr.
+ * Returns the value of the given integer flag, or the provided default value
+ * if the flag is not set.
  *
- * @param flags Pointer to an array of `flag_t` structures.
- * @param flag The flag string whose value is to be retrieved.
- * @return The value associated with the specified flag, or nullptr if the flag
- * does not have an associated value or if the flag is not found.
+ * @param flag Pointer to the flag to retrieve the value from.
+ * @param defval The default value to return if the flag is not set.
+ * @return The integer value of the flag, or defval if not set.
  */
-char *hay_flags_get_val(flag_t *flags, char *flag);
+int hay_flags_getint(flag_t *flag, const int defval);
 
 /**
- * @brief Retrieves the check bit associated with a specific flag.
+ * @brief Retrieves the value of a string flag, or a default if not set.
  *
- * This function retrieves the value of the check bit stored in the `check`
- * field of the `flag_t` structure associated with the specified flag. If the
- * flag does not have a check bit, or if the flag is not found, the function
- * returns 0.
+ * Returns the value of the given string flag, or the provided default value
+ * if the flag is not set.
  *
- * @param flags Pointer to an array of `flag_t` structures.
- * @param flag The flag string whose check bit is to be retrieved.
- * @return The value of the check bit associated with the specified flag, or 0
- * if the flag does not have a check bit or if the flag is not found.
+ * @param flag Pointer to the flag to retrieve the value from.
+ * @param defval The default value to return if the flag is not set.
+ * @return The string value of the flag, or defval if not set.
+ *
+ * @note The returned string is owned by the flag structure and should not
+ *       be freed by the caller.
  */
-bool hay_flags_get_check(flag_t *flags, char *flag);
+const char *hay_flags_getstr(flag_t *flag, const char *defval);
 
 /**
- * @brief Retrieves the index of a specific flag.
+ * @brief Retrieves the value of a boolean flag, or a default if not set.
  *
- * This function retrieves the index of the command-line argument that matches
- * the specified flag. If the flag is not found, or if the index is not set,
- * the function returns -1.
+ * Returns the value of the given boolean flag, or the provided default value
+ * if the flag is not set.
  *
- * @param flags Pointer to an array of `flag_t` structures.
- * @param flag The flag string whose index is to be retrieved.
- * @return The index of the command-line argument that matches the specified
- * flag, or -1 if the flag is not found or if the index is not set.
+ * @param flag Pointer to the flag to retrieve the value from.
+ * @param defval The default value to return if the flag is not set.
+ * @return The boolean value of the flag, or defval if not set.
  */
-int hay_flags_get_idx(flag_t *flags, char *flag);
+bool hay_flags_getbool(flag_t *flag, const bool defval);
 
 #endif // HAY_FLAGS_H

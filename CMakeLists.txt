@@ -25,13 +25,8 @@ else()
     add_library(${LIBRARY_NAME} STATIC ${SOURCES})
 endif()
 
-# Set the version for shared libraries
-if(SHARED_flags)
-    set_target_properties(${LIBRARY_NAME} PROPERTIES
-        VERSION 1.0
-        SOVERSION 1
-    )
-endif()
+# Set library version
+set_target_properties(${LIBRARY_NAME} PROPERTIES VERSION 1.0.0 SOVERSION 1 C_STANDARD 23)
 
 # Install targets
 install(TARGETS ${LIBRARY_NAME}
@@ -42,8 +37,6 @@ install(TARGETS ${LIBRARY_NAME}
 # Install headers
 install(DIRECTORY include/ DESTINATION include)
 
-# Set library version
-set_target_properties(${LIBRARY_NAME} PROPERTIES VERSION 0.0.1 SOVERSION 0 C_STANDARD 23)
 
 if(BUILD_tests)
     # Enable testing

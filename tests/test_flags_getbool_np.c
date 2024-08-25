@@ -9,10 +9,11 @@ int main() {
   flag_t *dir = hay_flags_create("dir", FT_STR, 'd');
   flag_t *repl = hay_flags_create("repl", FT_NULL, 'R');
   flag_t *verbose = hay_flags_create("verbose", FT_NULL, 'V');
+  flag_t *enable = hay_flags_create("enable", FT_BOOL, 'e');
 
-  flag_t *flags[] = {port, dir, repl, verbose};
-  int res = hay_flags_parse(flags, argc, argv);
+  assert(enable != nullptr);
 
-  assert(errno == 0);
-  assert(res == 0);
+  bool e = hay_flags_getbool(enable, false);
+
+  assert(e == false);
 }
