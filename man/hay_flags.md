@@ -10,7 +10,7 @@ hay_flags.h(3) - Command-line Flag Parsing Library
 ```c
 flag_t *hay_flags_create(const char *name, const char short_name, flag_ty_t type);
 int hay_flags_parse(flag_t **flags, int argc, char **argv);
-bool hay_flags_getnull(flag_t *flag, const bool defval);
+__attribute__((deprecated("Use hay_flags_getbool() with FT_BOOL instead"))) bool hay_flags_getnull(flag_t *flag, const bool defval);
 int hay_flags_getint(flag_t *flag, const int defval);
 const char *hay_flags_getstr(flag_t *flag, const char *defval);
 bool hay_flags_getbool(flag_t *flag, const bool defval);
@@ -127,7 +127,7 @@ Retrieves the value of a string flag or returns a default value.
 
 The string value of the flag if set; otherwise, returns `defval`.
 
-### hay_flags_getbool()
+### hay_flags_getbool() (deprecated)
 
 **Synopsis:**
 

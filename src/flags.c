@@ -5,23 +5,6 @@
 #include <string.h>
 
 /**
- * @def SAFE_FREE(ptr)
- * @brief Safely frees a pointer and sets it to nullptr.
- *
- * This macro checks if the pointer is not NULL before freeing it, and then
- * sets the pointer to nullptr to avoid dangling pointers.
- *
- * @param ptr Pointer to be freed.
- */
-#define SAFE_FREE(ptr)                                                         \
-  do {                                                                         \
-    if (ptr) {                                                                 \
-      free(ptr);                                                               \
-      ptr = nullptr;                                                           \
-    }                                                                          \
-  } while (0)
-
-/**
  * @brief Creates a new flag structure.
  *
  * Allocates memory for a new flag and initializes it with the provided name,
@@ -59,8 +42,10 @@ flag_t *hay_flags_create(const char *name, const char short_name,
   flag->name = strdup(name);
   if (!flag->name) {
     perror("strdup()"); // Print error message if strdup fails.
-    SAFE_FREE(flag);    // Free allocated memory to avoid memory leaks.
-    errno = ENOMEM;     // Set errno to ENOMEM to indicate memory issue.
+    if (flag != nullptr) {
+      free(flag);
+    }
+    errno = ENOMEM; // Set errno to ENOMEM to indicate memory issue.
     return nullptr;
   }
 
@@ -113,7 +98,11 @@ int hay_flags_parse(flag_t **flags, int argc, char **argv) {
         if (arg[1] == '-') {
           // Long option (e.g., --verbose)
           if (strcmp(&arg[2], flag->name) == 0) {
-            if (i + 1 < argc) {
+            if (flag->type == FT_BOOL) {
+              // Treat --flag as --flag true
+              flag->val.val_bool = true;
+              flag->is_set = true;
+            } else if (i + 1 < argc) {
               char *v = argv[++i];
               if (!v) {
                 continue; // Skip if no value is provided after the flag.
@@ -135,9 +124,9 @@ int hay_flags_parse(flag_t **flags, int argc, char **argv) {
                 }
                 break;
               case FT_BOOL:
-                if (strcmp(v, "true") == 0) {
+                if (strcmp(v, "true") == 0 || strcmp(v, "1") == 0) {
                   flag->val.val_bool = true;
-                } else if (strcmp(v, "false") == 0) {
+                } else if (strcmp(v, "false") == 0 || strcmp(v, "0") == 0) {
                   flag->val.val_bool = false;
                 } else {
                   flag->val.val_bool =
@@ -147,19 +136,24 @@ int hay_flags_parse(flag_t **flags, int argc, char **argv) {
               default:
                 continue; // Skip unsupported flag types.
               }
+              flag->is_set = true; // Mark the flag as set.
             } else if (flag->type == FT_NULL) {
               flag->is_set = true; // Mark null flags as set.
             } else {
               continue; // Skip if value is missing and type is not FT_NULL.
             }
-            flag->is_set = true; // Mark the flag as set.
           }
         } else {
           // Short option (e.g., -v or -v value)
           for (int k = 1; arg[k] != '\0'; k++) {
             char f = arg[k];
             if (flag->short_name == f) {
-              if (arg[k + 1] == '\0' && i + 1 < argc && flag->type != FT_NULL) {
+              if (flag->type == FT_BOOL && arg[k + 1] == '\0') {
+                // Treat -f as -f true
+                flag->val.val_bool = true;
+                flag->is_set = true;
+              } else if (arg[k + 1] == '\0' && i + 1 < argc &&
+                         flag->type != FT_NULL) {
                 char *v = argv[++i];
                 if (!v) {
                   continue; // Skip if no value is provided after the flag.
@@ -185,10 +179,10 @@ int hay_flags_parse(flag_t **flags, int argc, char **argv) {
                   flag->is_set = true;
                   break;
                 case FT_BOOL:
-                  if (strcmp(v, "true") == 0) {
+                  if (strcmp(v, "true") == 0 || strcmp(v, "1") == 0) {
                     flag->val.val_bool = true;
                     flag->is_set = true;
-                  } else if (strcmp(v, "false") == 0) {
+                  } else if (strcmp(v, "false") == 0 || strcmp(v, "0") == 0) {
                     flag->val.val_bool = false;
                     flag->is_set = true;
                   } else {
@@ -217,6 +211,7 @@ int hay_flags_parse(flag_t **flags, int argc, char **argv) {
 }
 
 /**
+ * @deprecated Use hay_flags_getbool() with FT_BOOL as the type
  * @brief Retrieves the value of a null flag or returns a default value.
  *
  * Checks if the specified flag is a null type and if it is set. If so, returns

@@ -34,10 +34,14 @@
  * @brief Enum representing the type of a flag.
  */
 typedef enum {
-  FT_NULL, ///< Represents a null type, used for uninitialized flags.
-  FT_STR,  ///< String type flag.
-  FT_INT,  ///< Integer type flag.
-  FT_BOOL  ///< Boolean type flag.
+  FT_NULL __attribute__((deprecated(
+      "Not recommended. Use FT_BOOL instead"))), ///< Represents a null type,
+                                                 ///< used for flags without
+                                                 ///< value. @deprecated Use
+                                                 ///< FT_BOOL instead
+  FT_STR,                                        ///< String type flag.
+  FT_INT,                                        ///< Integer type flag.
+  FT_BOOL                                        ///< Boolean type flag.
 } flag_ty_t;
 
 /**
@@ -106,7 +110,9 @@ int hay_flags_parse(flag_t **flags, int argc, char **argv);
  * @param defval The default value to return if the flag is not set.
  * @return The null value of the flag, or defval if not set.
  */
-bool hay_flags_getnull(flag_t *flag, const bool defval);
+__attribute__((deprecated("Not recommended. Use hay_flags_getbool() instead "
+                          "(with FT_BOOL as the type)"))) bool
+hay_flags_getnull(flag_t *flag, const bool defval);
 
 /**
  * @brief Retrieves the value of an integer flag, or a default if not set.
@@ -136,6 +142,7 @@ int hay_flags_getint(flag_t *flag, const int defval);
 const char *hay_flags_getstr(flag_t *flag, const char *defval);
 
 /**
+ * @deprecated Use hay_flags_getbool() with FT_BOOL as the type
  * @brief Retrieves the value of a boolean flag, or a default if not set.
  *
  * Returns the value of the given boolean flag, or the provided default value
