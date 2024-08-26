@@ -70,7 +70,7 @@ Parses command-line arguments and sets the corresponding flags.
 
 - `EINVAL`: Invalid arguments provided.
 
-### hay_flags_getnull()
+### hay_flags_getnull() (deprecated)
 
 **Synopsis:**
 
@@ -127,7 +127,7 @@ Retrieves the value of a string flag or returns a default value.
 
 The string value of the flag if set; otherwise, returns `defval`.
 
-### hay_flags_getbool() (deprecated)
+### hay_flags_getbool()
 
 **Synopsis:**
 
